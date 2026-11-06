@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#16110F">
+<meta name="description" content="e 路长征 · 华南师范大学 2025 级网络工程 01 班团支部 主题团日活动">
+<title>e 路长征 · 重走 25,000 里</title>
+<style>
+  :root{
+    --paper:#F7F3EC; --paper2:#EFE7D9; --red:#C1121F; --red-d:#8E0D16;
+    --gold:#B08A3E; --ink:#1B1613; --ink2:#4A4038; --gray:#6E6054;
+    --gray2:#9A8C7C; --line:#DCD2C2; --dark:#16110F;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased; overflow:hidden;
+  }
+  button{font-family:inherit;border:0;background:none;cursor:pointer;color:inherit}
+  .screen{position:fixed;inset:0;display:none;flex-direction:column}
+  .screen.on{display:flex}
+
+  /* ---------- 封面 ---------- */
+  #cover{background:var(--dark);color:#fff;justify-content:center;padding:0 28px}
+  .cover-bg{
+    position:absolute;right:-18px;top:50%;transform:translateY(-50%);
+    font-size:clamp(150px,44vw,280px);line-height:1;font-weight:700;color:#241c18;
+    letter-spacing:-10px;user-select:none;pointer-events:none;
+  }
+  .cover-in{position:relative;width:100%;max-width:520px}
+  .kicker{font-size:12px;letter-spacing:1.5px;color:#C9A96A}
+  .rline{width:38px;height:3px;background:var(--red);margin:18px 0 26px}
+  #cover h1{
+    margin:0;font-size:62px;line-height:1.05;letter-spacing:2px;font-weight:700;
+  }
+  #cover .sub{margin-top:12px;font-size:19px;letter-spacing:2px;color:#E3C48B}
+  #cover .lead{margin:22px 0 0;font-size:13px;line-height:2;color:#B9ABA0;overflow-wrap:anywhere}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--red);color:#fff;font-size:16px;font-weight:700;letter-spacing:2px;
+    padding:14px 34px;border-radius:2px;transition:.2s;box-shadow:0 6px 18px rgba(193,18,31,.28);
+  }
+  .btn:active{transform:translateY(1px);opacity:.92}
+  .btn[disabled]{opacity:.4;box-shadow:none}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);box-shadow:none}
+  #btnStart{margin-top:34px}
+  #cover .meta{margin-top:16px;font-size:11px;letter-spacing:1px;color:#8C7B6C}
+  .cover-foot{position:absolute;left:28px;bottom:26px;font-size:11px;color:#7A6A5C;letter-spacing:.5px}
+
+  /* ---------- 地图 ---------- */
+  #map{background:var(--paper)}
+  .hd{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:calc(14px + env(safe-area-inset-top)) 20px 10px;
+  }
+  .hd-l{display:flex;align-items:baseline;gap:10px}
+  .hd-l b{font-size:15px;letter-spacing:2px}
+  .hd-l span{font-size:12px;color:var(--gray2);font-variant-numeric:tabular-nums}
+  .link{font-size:12px;color:var(--gray);letter-spacing:1px;padding:4px 2px}
+  .bar{height:2px;background:var(--line);margin:0 20px}
+  .bar i{display:block;height:100%;width:0;background:var(--red);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+  .stage{flex:1;display:flex;align-items:center;justify-content:center;padding:6px 8px 0;min-height:0;overflow:hidden}
+  #svg{width:100%;height:auto;max-height:100%;display:block;flex:0 0 auto}
+  .tip{
+    padding:10px 22px calc(14px + env(safe-area-inset-bottom));
+    font-size:12px;line-height:1.9;color:var(--gray);text-align:center;
+    max-width:100%;overflow-wrap:anywhere;
+  }
+  .tip b{color:var(--red);font-weight:400}
+
+  /* 节点 */
+  .node{cursor:pointer}
+  .node .halo{fill:var(--red);opacity:0}
+  .node .dot{fill:#fff;stroke:var(--line);stroke-width:2;transition:.35s}
+  .node .num{font-size:12.5px;font-weight:700;fill:var(--gray2);text-anchor:middle;transition:.35s}
+  .node .nm{font-size:13.5px;font-weight:700;fill:var(--ink);paint-order:stroke;stroke:#F7F3EC;stroke-width:3.4;stroke-linejoin:round}
+  .node .dt{font-size:10px;fill:var(--gray2);letter-spacing:.5px;paint-order:stroke;stroke:#F7F3EC;stroke-width:3;stroke-linejoin:round}
+  .node.lock .nm,.node.lock .dt{fill:#B9AD9E}
+  .node.cur .dot{stroke:var(--red);stroke-width:2.5}
+  .node.cur .num{fill:var(--red)}
+  .node.cur .halo{animation:pulse 2s ease-out infinite}
+  .node.done .dot{fill:var(--gold);stroke:var(--gold)}
+  .node.done .num{fill:#fff}
+  .node.done .nm{fill:var(--ink)}
+  @keyframes pulse{
+    0%{opacity:.5;transform:scale(.7)} 70%{opacity:0;transform:scale(1.6)} 100%{opacity:0}
+  }
+  .node .halo{transform-box:fill-box;transform-origin:center}
+
+  /* ---------- 底部详情 ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(22,17,15,.5);opacity:0;pointer-events:none;transition:.28s;z-index:40}
+  .overlay.on{opacity:1;pointer-events:auto}
+  .sheet{
+    position:fixed;left:0;right:0;bottom:0;z-index:50;
+    background:var(--paper);border-radius:14px 14px 0 0;
+    transform:translateY(102%);transition:transform .34s cubic-bezier(.2,.8,.2,1);
+    max-height:86vh;display:flex;flex-direction:column;
+    box-shadow:0 -10px 40px rgba(0,0,0,.18);
+  }
+  .sheet.on{transform:translateY(0)}
+  .sheet-in{overflow-y:auto;padding:22px 24px calc(22px + env(safe-area-inset-bottom));-webkit-overflow-scrolling:touch}
+  .sh-code{font-size:11px;letter-spacing:3px;color:var(--red);font-weight:700}
+  .sheet h2{margin:10px 0 0;font-size:24px;letter-spacing:1px}
+  .sh-meta{margin-top:8px;font-size:12px;color:var(--gray2);letter-spacing:.5px}
+  .sh-img{
+    margin:16px 0 0;height:104px;border:1px dashed var(--gold);border-radius:2px;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;
+    color:#B49A6A;font-size:11px;letter-spacing:1px;background:rgba(176,138,62,.05);
+  }
+  .sh-img.has{border:0;padding:0;overflow:hidden}
+  .sh-img.has img{width:100%;height:100%;object-fit:cover}
+  .sheet p{margin:16px 0 0;font-size:14px;line-height:2;color:var(--ink2);text-align:justify}
+  .sheet p::first-letter{font-size:20px;font-weight:700;color:var(--red)}
+  .sh-actions{margin-top:20px;display:flex;gap:12px}
+
+  /* ---------- 答题 ---------- */
+  .modal{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+  .modal.on{display:flex}
+  .modal .ov{position:absolute;inset:0;background:rgba(22,17,15,.62)}
+  .card{
+    position:relative;background:var(--paper);border-radius:12px;width:100%;max-width:420px;
+    padding:22px 22px 20px;max-height:88vh;overflow-y:auto;
+  }
+  .q-code{font-size:11px;letter-spacing:2px;color:var(--gray2)}
+  .card h3{margin:10px 0 0;font-size:16px;line-height:1.75;font-weight:700}
+  .opts{margin-top:16px;display:flex;flex-direction:column;gap:9px}
+  .opt{
+    display:flex;gap:10px;align-items:flex-start;text-align:left;
+    padding:11px 13px;border:1px solid var(--line);border-radius:3px;
+    font-size:13.5px;line-height:1.6;color:var(--ink2);background:#fff;transition:.18s;
+  }
+  .opt .k{font-size:11px;color:var(--gray2);font-weight:700;flex:none;padding-top:2px}
+  .opt:active{background:#FAF6EE}
+  .opt.ok{border-color:var(--gold);background:rgba(176,138,62,.1)}
+  .opt.ok .k{color:var(--gold)}
+  .opt.no{border-color:var(--red);background:rgba(193,18,31,.07)}
+  .opt.no .k{color:var(--red)}
+  .opt.dim{opacity:.5}
+  .res{margin-top:14px;font-size:12.5px;line-height:1.9;color:var(--gray);display:none}
+  .res.on{display:block}
+  .res b{color:var(--red);font-weight:700}
+  .q-actions{margin-top:18px;display:flex;justify-content:flex-end;gap:10px}
+
+  /* ---------- 海报 ---------- */
+  #posterWrap .card{max-width:520px;text-align:center}
+  .pname{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:3px;
+    font-size:14px;font-family:inherit;background:#fff;color:var(--ink);margin-bottom:12px;text-align:center;
+  }
+  .pname:focus{outline:none;border-color:var(--gold)}
+  #posterImg{width:100%;border-radius:4px;display:block;box-shadow:0 8px 26px rgba(0,0,0,.16)}
+  .psave{margin-top:14px;display:flex;gap:10px;justify-content:center}
+  .ptip{margin-top:10px;font-size:11px;color:var(--gray2);line-height:1.7}
+  @media (max-width:360px){ #cover h1{font-size:52px} }
+.sh-img.art{padding:0!important;border:0!important;background:none!important;overflow:hidden}
+.sh-img.art svg{border-radius:10px;display:block}
+</style>
+</head>
+<body>
+
+<!-- ================= 封面 ================= -->
+<section id="cover" class="screen on">
+  <div class="cover-bg">90</div>
+  <div class="cover-in">
+    <div class="kicker">华南师范大学 2026 年主题团日竞赛活动（秋季）</div>
+    <div class="rline"></div>
+    <h1>e 路长征</h1>
+    <div class="sub">e 路向党 · 青春挺膺</div>
+    <p class="lead">一条长征路，七道关卡：把 25,000 里，走成一条可以点开、可以接力、可以传下去的链路。</p>
+    <button id="btnStart" class="btn">开始重走</button>
+    <div class="meta">7 个节点 · 24 道党史题 · 约 8 分钟</div>
+  </div>
+  <div class="cover-foot">计算机学院 2025 级网络工程 1 班团支部</div>
+</section>
+
+<!-- ================= 地图 ================= -->
+<section id="map" class="screen">
+  <header class="hd">
+    <div class="hd-l"><b>e 路长征</b><span id="progressTxt">0 / 7</span></div>
+    <div><button id="btnPosterTop" class="link" hidden>足迹海报</button><button id="btnReset" class="link">重走</button></div>
+  </header>
+  <div class="bar"><i id="barFill"></i></div>
+  <div class="stage">
+    <svg id="svg" viewBox="30 36 330 410" preserveAspectRatio="xMidYMid meet" aria-label="长征路线图">
+      <g id="grid" stroke="#E4DACA" stroke-width="1"></g>
+      <path id="base" fill="none" stroke="#D8CBB8" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="2 7"/>
+      <path id="prog" fill="none" stroke="#C1121F" stroke-width="2.8" stroke-linecap="round"/>
+      <g id="prov"></g>
+      <g id="nodes"></g>
+    </svg>
+  </div>
+  <div class="tip" id="tip">点击发光的节点：读一段 200 字的史实，答对 1 道党史题，<b>这一关就点亮了</b>。</div>
+</section>
+
+<!-- ================= 详情 ================= -->
+<div id="ovDetail" class="overlay"></div>
+<div id="sheet" class="sheet">
+  <div class="sheet-in">
+    <div class="sh-code" id="shCode">NODE 01</div>
+    <h2 id="shName">瑞金出发</h2>
+    <div class="sh-meta" id="shMeta"></div>
+    <div class="sh-img" id="shImg"></div>
+    <p id="shStory"></p>
+    <div class="sh-actions">
+      <button id="btnQuiz" class="btn">答题解锁</button>
+      <button id="btnCloseSheet" class="btn ghost">先看看</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 答题 ================= -->
+<div id="quiz" class="modal">
+  <div class="ov" data-close="quiz"></div>
+  <div class="card">
+    <div class="q-code" id="qCode">第 1 关 · 答题解锁</div>
+    <h3 id="qText"></h3>
+    <div class="opts" id="qOpts"></div>
+    <div class="res" id="qRes"></div>
+    <div class="q-actions">
+      <button id="qAct" class="btn" disabled>再想想</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= 海报 ================= -->
+<div id="posterWrap" class="modal">
+  <div class="ov" data-close="poster"></div>
+  <div class="card">
+    <div class="q-code">全部点亮 · 生成你的长征足迹</div>
+    <h3 style="margin-bottom:14px">把这段路，变成一张能发出去的海报</h3>
+    <input id="pname" class="pname" maxlength="8" placeholder="写下你的名字" value="">
+    <img id="posterImg" alt="长征足迹海报">
+    <div class="psave">
+      <button id="btnSave" class="btn">保存图片</button>
+      <button id="btnClosePoster" class="btn ghost">回到地图</button>
+    </div>
+    <div class="ptip">微信里请长按图片保存到相册；电脑上点「保存图片」直接下载。</div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   e 路长征 · 互动地图
+   —— 单文件静态 H5：无框架、无网络请求、无后端。
+   —— 改内容只需改下面 DATA 里的 nodes（7 个节点）和 quiz（24 道题）。
+   ===================================================================== */
+
+var DATA = {
+  branch: "计算机学院 2025 级网络工程 1 班团支部",
+  branchFull: "中国共产主义青年团华南师范大学 2025 级网络工程专业 01 班团支部",
+  slogan: "一条长征路，三场青春实践",
+
+  nodes: [
+    { code:"01", name:"瑞金出发", date:"1934.10", place:"江西 瑞金 · 于都",
+      x:316, y:356, lb:"b", de:1,
+      story:"1934 年 10 月，中央红军 8.6 万余人从江西瑞金、于都出发，开始战略转移。10 月 17 日夜，主力从于都河 8 个渡口渡河，苏区百姓把门板、床板拆下来架浮桥，有位老人连自己的寿材也抬了出来。没有人知道要走多远，也没有人知道要走多久，队伍只带了一块写着“北上抗日”的布。后来人们把这条河叫作“长征第一渡”。" },
+
+    { code:"02", name:"血战湘江", date:"1934.11", place:"广西 兴安 · 全州",
+      x:246, y:390, lb:"b",
+      story:"1934 年 11 月 27 日至 12 月 1 日，红军在广西兴安、全州之间抢渡湘江，与国民党军血战五昼夜。此役中央红军由出发时的 8.6 万余人锐减至 3 万余人，是长征以来最惨烈的一仗。红五军团第 34 师担任后卫，师长陈树湘腹部中弹被俘，在担架上扯断肠子壮烈牺牲，年仅 29 岁。湘江的水被染红，当地百姓多年“三年不饮湘江水，十年不食湘江鱼”。" },
+
+    { code:"03", name:"遵义会议", date:"1935.01", place:"贵州 遵义",
+      x:184, y:332, lb:"bl",
+      story:"1935 年 1 月 15 日至 17 日，中共中央政治局在贵州遵义召开扩大会议。会议集中解决当时最紧迫的军事和组织问题，结束了“左”倾教条主义在党中央的统治，事实上确立了毛泽东在党中央和红军的领导地位。这是中国共产党第一次独立自主地解决自己的路线、方针和政策问题，是党的历史上一个生死攸关的转折点。这场会开在长征途中，开在败仗之后——先承认错误，才有后来的四渡赤水。" },
+
+    { code:"04", name:"四渡赤水", date:"1935.01—03", place:"川黔滇 赤水河",
+      x:148, y:272, lb:"r", dx:22,
+      story:"1935 年 1 月至 3 月，3 万余红军在川、黔、滇边界四次渡过赤水河，在 40 万敌军的围堵中来回穿插。一渡避敌、二渡回师遵义、三渡诱敌西进、四渡乘虚南渡乌江，最终跳出包围圈。毛泽东后来把四渡赤水称为自己军事生涯的“得意之笔”。它的厉害不在于打了多少仗，而在于每一步都在调动敌人——把敌人的部署，变成了自己的路线图。" },
+
+    { code:"05", name:"飞夺泸定桥", date:"1935.05", place:"四川 泸定",
+      x:124, y:232, lb:"l", dx:-26,
+      story:"1935 年 5 月 29 日，红四团一昼夜奔袭 240 里，赶到四川泸定桥。桥面木板已被拆除，只剩 13 根铁索横在湍急的大渡河上。22 名突击队员手攀铁索、背挂马刀，冒着弹雨匍匐前进，后续部队边爬边铺桥板，两小时夺取泸定桥。72 年前石达开兵败大渡河，红军用一天一夜走出了另一条路——不是运气，是脚力。" },
+
+    { code:"06", name:"爬雪山过草地", date:"1935.06—08", place:"四川 夹金山 · 松潘草地",
+      x:146, y:170, lb:"l", dx:-22,
+      story:"1935 年 6 月，红军翻越长征途中第一座大雪山——四川夹金山，海拔 4000 多米，空气稀薄，战士穿着单衣，靠辣椒和烧酒御寒，坐下休息就可能再也起不来。8 月进入松潘草地，泥沼无边，7 天 6 夜，粮食吃尽就煮皮带、啃草根。聂荣臻回忆：“过了草地，人瘦得只剩一副骨头架子。”这一段没有敌人，只有自然——最难的路，往往没有对手。" },
+
+    { code:"07", name:"会宁会师", date:"1936.10", place:"甘肃 会宁 · 将台堡",
+      x:250, y:106, lb:"t", de:1,
+      story:"1936 年 10 月，红一、红二、红四方面军在甘肃会宁、静宁将台堡会师，长征胜利结束。中央红军历时两年，途经 11 个省，翻越 18 座大山，跨过 24 条大河，行程约二万五千里。出发时 8.6 万人，到达陕北时不足 3 万——但这些人，成了后来整个中国革命的种子。毛泽东说：“长征是宣言书，长征是宣传队，长征是播种机。”" }
+  ],
+
+  /* 24 道题库：每关随机抽 1 道，不重复 */
+  quiz: [
+    { q:"中央红军长征的出发地是？", o:["江西瑞金、于都","陕西延安","贵州遵义","甘肃会宁"], a:0,
+      e:"1934 年 10 月，中央红军从江西瑞金、于都出发开始战略转移。" },
+    { q:"中央红军的长征开始于哪一年？", o:["1933 年","1934 年","1935 年","1936 年"], a:1,
+      e:"1934 年 10 月出发，1936 年 10 月三大主力会师，历时两年。" },
+    { q:"湘江战役后，中央红军人数由 8.6 万余人锐减至约多少？", o:["6 万","5 万","3 万","1 万"], a:2,
+      e:"湘江一战损失过半，全军由 8.6 万余人减至 3 万余人。" },
+    { q:"遵义会议召开的时间是？", o:["1934 年 12 月","1935 年 1 月","1935 年 5 月","1936 年 10 月"], a:1,
+      e:"1935 年 1 月 15 日至 17 日，中共中央政治局在贵州遵义召开扩大会议。" },
+    { q:"遵义会议最重要的历史意义是？", o:["确定北上抗日的方针","事实上确立了毛泽东在党中央和红军的领导地位","宣布长征胜利结束","决定建立陕甘宁边区"], a:1,
+      e:"遵义会议是党的历史上一个生死攸关的转折点。" },
+    { q:"“四渡赤水”中红军四次渡过的河流是？", o:["乌江","赤水河","大渡河","金沙江"], a:1,
+      e:"赤水河是长江上游支流，红军在川黔滇边界四次渡河、来回穿插。" },
+    { q:"飞夺泸定桥时，攀着铁索突击的队员有多少人？", o:["13 人","18 人","22 人","30 人"], a:2,
+      e:"22 名突击队员手攀 13 根铁索匍匐前进，两小时夺取泸定桥。" },
+    { q:"泸定桥横跨的大河是？", o:["金沙江","大渡河","岷江","嘉陵江"], a:1,
+      e:"泸定桥横跨大渡河，桥面木板被拆，只剩铁索。" },
+    { q:"红军长征途中翻越的第一座大雪山是？", o:["夹金山","党岭山","梦笔山","岷山"], a:0,
+      e:"1935 年 6 月，红军翻越海拔 4000 多米的夹金山。" },
+    { q:"松潘草地位于今天的哪个省？", o:["甘肃","青海","四川","云南"], a:2,
+      e:"松潘草地在四川西北部，红军在此走了 7 天 6 夜。" },
+    { q:"红军三大主力会师的地点是？", o:["陕西吴起镇","甘肃会宁、将台堡","贵州遵义","江西瑞金"], a:1,
+      e:"1936 年 10 月，红一、红二、红四方面军在甘肃会宁、静宁将台堡会师。" },
+    { q:"中央红军长征的行程约为多少里？", o:["一万里","一万五千里","二万五千里","三万里"], a:2,
+      e:"约二万五千里，途经 11 个省，翻越 18 座大山，跨过 24 条大河。" },
+    { q:"中央红军长征历时多久？", o:["一年","两年","三年","四年"], a:1,
+      e:"1934 年 10 月至 1936 年 10 月，整整两年。" },
+    { q:"中央红军长征共途经多少个省？", o:["8 个","11 个","14 个","18 个"], a:1,
+      e:"途经 11 个省，翻 18 座大山，跨 24 条大河。" },
+    { q:"毛泽东“长征是宣言书，是宣传队，是播种机”的论述出自？", o:["《论持久战》","《论反对日本帝国主义的策略》","《星星之火，可以燎原》","《实践论》"], a:1,
+      e:"出自 1935 年 12 月《论反对日本帝国主义的策略》。" },
+    { q:"在湘江战役中壮烈牺牲的红三十四师师长是？", o:["陈树湘","王开湘","寻淮洲","方志敏"], a:0,
+      e:"陈树湘腹部中弹被俘，在担架上扯断肠子牺牲，年仅 29 岁。" },
+    { q:"“三年不饮湘江水，十年不食湘江鱼”说的是哪一仗？", o:["四渡赤水","湘江战役","飞夺泸定桥","血战独树镇"], a:1,
+      e:"湘江战役极其惨烈，江水被红军鲜血染红。" },
+    { q:"“半条被子”的故事发生在哪里？", o:["江西于都","湖南汝城沙洲村","贵州遵义","陕西延安"], a:1,
+      e:"三名女红军借宿湖南汝城沙洲村徐解秀家，临走剪下半条被子留给她。" },
+    { q:"党的二十大主题中，“自信自强、守正创新，____、勇毅前行”缺的一项是？", o:["踔厉奋发","艰苦奋斗","团结奋斗","开拓创新"], a:0,
+      e:"弘扬伟大建党精神，自信自强、守正创新，踔厉奋发、勇毅前行。" },
+    { q:"党的二十大报告指出，新时代十年完成的三件大事之一是？", o:["全面建成小康社会","加入世界贸易组织","实现共同富裕","建成社会主义现代化强国"], a:0,
+      e:"迎来建党一百周年、中国特色社会主义进入新时代、完成脱贫攻坚全面建成小康社会。" },
+    { q:"我国经济总量占世界经济的比重达 18.5%，稳居世界第几位？", o:["第一位","第二位","第三位","第四位"], a:1,
+      e:"国内生产总值从 54 万亿元增长到 114 万亿元，稳居世界第二位。" },
+    { q:"我国制造业规模、外汇储备稳居世界第几位？", o:["第一位","第二位","第三位","第四位"], a:0,
+      e:"制造业规模、外汇储备稳居世界第一。" },
+    { q:"“绿水青山就是____”是哪一发展理念的经典表述？", o:["金山银山","生产力","GDP","硬道理"], a:0,
+      e:"绿水青山就是金山银山，是习近平生态文明思想的重要理念。" },
+    { q:"2026 年是红军长征胜利多少周年？", o:["85 周年","88 周年","90 周年","95 周年"], a:2,
+      e:"1936 年 10 月会宁会师，2026 年正是长征胜利 90 周年。" }
+  ]
+};
+
+/* ---------------- 状态 ---------------- */
+var KEY = "szcz_v1";
+var S = { unlocked:[], answered:{}, qmap:[], name:"", t0:0, skip:0 };
+
+function load(){
+  try{
+    var raw = localStorage.getItem(KEY);
+    if(raw){ var o = JSON.parse(raw); for(var k in o) if(k in S) S[k]=o[k]; }
+  }catch(e){}
+  if(!S.t0) S.t0 = Date.now();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+
+/* ---------------- 工具 ---------------- */
+function $(id){ return document.getElementById(id); }
+function el(tag, attrs){
+  var e = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for(var k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+function lerp(a,b,t){ return a+(b-a)*t; }
+
+/* 平滑曲线（Catmull-Rom → 三次贝塞尔） */
+function smoothPath(pts){
+  var d = "M" + pts[0].x + "," + pts[0].y;
+  for(var i=0;i<pts.length-1;i++){
+    var p0 = pts[i-1]||pts[i], p1 = pts[i], p2 = pts[i+1], p3 = pts[i+2]||p2;
+    var c1x = p1.x + (p2.x-p0.x)/6, c1y = p1.y + (p2.y-p0.y)/6;
+    var c2x = p2.x - (p3.x-p1.x)/6, c2y = p2.y - (p3.y-p1.y)/6;
+    d += " C" + c1x + "," + c1y + " " + c2x + "," + c2y + " " + p2.x + "," + p2.y;
+  }
+  return d;
+}
+
+var NODES = DATA.nodes, svg = $("svg"), baseP = $("base"), progP = $("prog");
+var lens = [], total = 0;
+
+function buildMap(){
+  /* 背景经纬网格 */
+  var grid = $("grid");
+  for(var x=45;x<375;x+=45) grid.appendChild(el("line",{x1:x,y1:0,x2:x,y2:450,opacity:.55}));
+  for(var y=45;y<450;y+=45) grid.appendChild(el("line",{x1:0,y1:y,x2:375,y2:y,opacity:.55}));
+
+  /* 省份提示 */
+  var prov = [["江西",300,326],["广西",290,430],["贵州",88,318],["甘肃",306,58]];
+  prov.forEach(function(p){
+    var t = el("text",{x:p[1],y:p[2],"text-anchor":"middle","font-size":12,
+                        fill:"#D5C8B3","letter-spacing":4,"font-weight":700});
+    t.textContent = p[0]; $("prov").appendChild(t);
+  });
+
+  /* 路线 */
+  var d = smoothPath(NODES);
+  baseP.setAttribute("d", d);
+  progP.setAttribute("d", d);
+
+  /* 节点 */
+  var g = $("nodes");
+  NODES.forEach(function(n, i){
+    var grp = el("g",{class:"node lock","data-i":i});
+    grp.appendChild(el("circle",{class:"halo", r:19}));
+    grp.appendChild(el("circle",{class:"dot", r:13, cx:0, cy:0}));
+    var num = el("text",{class:"num", y:4.2}); num.textContent = n.code;
+    grp.appendChild(num);
+
+    var POS = {
+      b:  {dx:0,   dy:28,  a:"middle"},
+      bl: {dx:-6,  dy:26,  a:"end"},
+      r:  {dx:18,  dy:5,   a:"start"},
+      l:  {dx:-18, dy:5,   a:"end"},
+      t:  {dx:0,   dy:-20, a:"middle"}
+    };
+    var pp = POS[n.lb] || POS.b;
+    var ldx = (n.dx === undefined) ? pp.dx : n.dx;
+    var ldy = (n.dy === undefined) ? pp.dy : n.dy;
+    var lan = n.an || pp.a;
+    var nm = el("text",{class:"nm", x:ldx, y:ldy, "text-anchor":lan});
+    nm.textContent = n.name; grp.appendChild(nm);
+    if(n.de){
+      var d2 = el("text",{class:"dt", x:ldx, y:ldy + (n.lb==="t" ? -16 : 16), "text-anchor":lan});
+      d2.textContent = n.date; grp.appendChild(d2);
+    }
+
+    grp.setAttribute("transform","translate(" + n.x + "," + n.y + ")");
+    grp.addEventListener("click", function(){ onNode(i); });
+    g.appendChild(grp);
+  });
+
+}
+
+/* 路径总长与每个节点的弧长位置：必须在 svg 可见后测，display:none 时 getTotalLength 会返回 0 */
+function measure(){
+  if(total) return;
+  try{
+    total = progP.getTotalLength();
+    if(!total) return;
+    lens = [];
+    NODES.forEach(function(n){
+      var best = 0, bd = 1e9;
+      for(var i=0;i<=800;i++){
+        var l = total*i/800, p = progP.getPointAtLength(l);
+        var dd = (p.x-n.x)*(p.x-n.x) + (p.y-n.y)*(p.y-n.y);
+        if(dd < bd){ bd = dd; best = l; }
+      }
+      lens.push(best);
+    });
+    progP.style.strokeDasharray = total;
+    progP.style.strokeDashoffset = total;
+  }catch(e){ /* 极少数内核不支持 getTotalLength，退化为不画进度线 */ }
+}
+
+/* ---------------- 进度与渲染 ---------------- */
+function drawProgress(len, animate){
+  if(!total) return;
+  var from = parseFloat(progP.style.strokeDashoffset) || total;
+  var to = total - len;
+  if(!animate){ progP.style.transition="none"; progP.style.strokeDashoffset = to; return; }
+  progP.style.transition = "stroke-dashoffset .75s cubic-bezier(.25,.8,.25,1)";
+  requestAnimationFrame(function(){ progP.style.strokeDashoffset = to; });
+  void from;
+}
+
+function render(){
+  measure();
+  var done = S.unlocked.length;
+  $("progressTxt").textContent = done + " / 7";
+  $("barFill").style.width = (done/7*100) + "%";
+
+  var els = $("nodes").childNodes;
+  NODES.forEach(function(n, i){
+    var g = els[i];
+    g.classList.remove("done","cur","lock");
+    if(S.unlocked.indexOf(i) >= 0) g.classList.add("done");
+    else if(i === done) g.classList.add("cur");
+    else g.classList.add("lock");
+  });
+
+  var len = done ? lens[done-1] : 0;
+  drawProgress(len, true);
+
+  if(done >= 7){
+    $("tip").innerHTML = "七个节点全部点亮。<b>你已经走完了 25,000 里</b>——生成一张你的足迹海报吧。";
+    $("btnPosterTop").hidden = false;
+  }else{
+    $("btnPosterTop").hidden = true;
+    $("tip").innerHTML = "点击发光的节点：读一段 200 字的史实，答对 1 道党史题，<b>这一关就点亮了</b>。";
+  }
+  save();
+}
+
+/* ---------------- 详情 ---------------- */
+function onNode(i){
+  if(S.unlocked.indexOf(i) < 0 && i !== S.unlocked.length){
+    flash("请按顺序重走：先点亮第 " + (S.unlocked.length+1) + " 关。");
+    return;
+  }
+  openSheet(i);
+}
+function flash(msg){
+  var t = $("tip"); var old = t.innerHTML;
+  t.innerHTML = msg; t.style.color = "#C1121F";
+  setTimeout(function(){ t.innerHTML = old; t.style.color = ""; }, 1800);
+}
+
+var curNode = 0;
+
+/* 没有照片时的「万水千山」插画（避免虚线占位框破坏观感） */
+function stationArt(n){
+  var i = NODES.indexOf(n) + 1;
+  var r1 = "M0,170 L0,122 L40,90 L78,118 L120,80 L160,114 L202,86 L246,118 L286,94 L320,120 L320,170 Z";
+  var r2 = "M0,170 L0,146 L54,122 L106,148 L158,120 L214,150 L264,128 L320,152 L320,170 Z";
+  return '<svg viewBox="0 0 320 170" preserveAspectRatio="none" style="display:block;width:100%;height:100%">'
+   + '<defs><linearGradient id="g' + i + '" x1="0" y1="0" x2="0" y2="1">'
+   + '<stop offset="0" stop-color="#F4EDDF"/><stop offset="1" stop-color="#E3D5BE"/></linearGradient></defs>'
+   + '<rect width="320" height="170" fill="url(#g' + i + ')"/>'
+   + '<circle cx="256" cy="42" r="22" fill="#C1121F" opacity="0.10"/>'
+   + '<path d="' + r1 + '" fill="#DED0B7"/>'
+   + '<path d="' + r2 + '" fill="#CBBA9D"/>'
+   + '<path d="M-8,134 C56,120 118,142 186,126 S282,108 330,120" fill="none" stroke="#C1121F" stroke-width="1.6" stroke-dasharray="5 5" opacity="0.7"/>'
+   + '<text x="14" y="40" font-family="SimSun,serif" font-size="12" fill="#8A7758" letter-spacing="1.5">' + n.place + '</text>'
+   + '<text x="306" y="162" text-anchor="end" font-family="Georgia,serif" font-size="44" fill="#C3AF8F" opacity="0.5">' + n.code + '</text>'
+   + '</svg>';
+}
+function openSheet(i){
+  curNode = i;
+  var n = NODES[i], locked = S.unlocked.indexOf(i) < 0;
+  $("shCode").textContent = "NODE " + n.code + (locked ? "" : " · 已点亮");
+  $("shName").textContent = n.name;
+  $("shMeta").textContent = n.date + "　·　" + n.place;
+  var im = $("shImg");
+  if(n.img){
+    im.className = "sh-img has"; im.innerHTML = "<img src='" + n.img + "' alt='" + n.name + "'>";
+  }else{
+    im.className = "sh-img art"; im.innerHTML = stationArt(n);
+  }
+  $("shStory").textContent = n.story;
+  $("btnQuiz").textContent = locked ? "答题解锁" : "再答一次（已点亮）";
+  $("btnQuiz").hidden = false;
+  $("btnQuiz").onclick = function(){ closeSheet(); setTimeout(function(){ openQuiz(i); }, 260); };
+  $("ovDetail").classList.add("on");
+  $("sheet").classList.add("on");
+}
+function closeSheet(){
+  $("ovDetail").classList.remove("on");
+  $("sheet").classList.remove("on");
+}
+
+/* ---------------- 答题 ---------------- */
+var qState = null;
+function pickQuestions(){
+  if(S.qmap && S.qmap.length === 7) return;
+  var idx = DATA.quiz.map(function(_,i){ return i; });
+  for(var i=idx.length-1;i>0;i--){ var j = Math.floor(Math.random()*(i+1)); var t=idx[i]; idx[i]=idx[j]; idx[j]=t; }
+  S.qmap = idx.slice(0,7);
+  save();
+}
+function openQuiz(i){
+  pickQuestions();
+  var qi = S.qmap[i % 7];
+  var q = DATA.quiz[qi];
+  qState = { node:i, qi:qi, done:false };
+  $("qCode").textContent = "第 " + (i+1) + " 关 · 答题解锁";
+  $("qText").textContent = q.q;
+  var box = $("qOpts"); box.innerHTML = "";
+  var keys = ["A","B","C","D"];
+  q.o.forEach(function(txt, k){
+    var b = document.createElement("button");
+    b.className = "opt"; b.type = "button";
+    b.innerHTML = "<span class='k'>" + keys[k] + "</span><span>" + txt + "</span>";
+    b.onclick = function(){ answer(k, b); };
+    box.appendChild(b);
+  });
+  $("qRes").className = "res";
+  $("qRes").innerHTML = "";
+  var act = $("qAct");
+  act.textContent = "再想想"; act.disabled = true;
+  act.onclick = null;
+  $("quiz").classList.add("on");
+}
+function answer(k, btn){
+  if(qState.done) return;
+  var q = DATA.quiz[qState.qi];
+  var opts = $("qOpts").childNodes;
+  var right = (k === q.a);
+  qState.done = true;
+
+  for(var i=0;i<opts.length;i++){
+    opts[i].onclick = null;
+    if(i === q.a) opts[i].classList.add("ok");
+    else if(i === k) opts[i].classList.add("no");
+    else opts[i].classList.add("dim");
+  }
+  $("qRes").className = "res on";
+  $("qRes").innerHTML = (right ? "<b>答对了。</b>" : "<b>再看一眼。</b>") + q.e;
+
+  var act = $("qAct");
+  act.disabled = false;
+  if(right){
+    act.textContent = "点亮这个节点";
+    act.onclick = function(){ unlock(qState.node); closeQuiz(); };
+  }else{
+    act.textContent = "再试一次";
+    act.onclick = function(){ openQuiz(qState.node); };
+  }
+}
+function closeQuiz(){ $("quiz").classList.remove("on"); }
+function unlock(i){
+  if(S.unlocked.indexOf(i) < 0){
+    S.unlocked.push(i);
+    S.answered[i] = true;
+    S.unlocked.sort(function(a,b){ return a-b; });
+  }
+  render();
+  if(S.unlocked.length >= 7) setTimeout(openPoster, 900);
+}
+
+/* ---------------- 海报 ---------------- */
+var POSTER_W = 1080, POSTER_H = 1560;
+function drawPoster(){
+  var c = document.createElement("canvas");
+  c.width = POSTER_W; c.height = POSTER_H;
+  var x = c.getContext("2d");
+  var name = ($("pname").value || "团员").slice(0,8);
+
+  x.fillStyle = "#F7F3EC"; x.fillRect(0,0,POSTER_W,POSTER_H);
+  /* 顶部色块 */
+  x.fillStyle = "#16110F"; x.fillRect(0,0,POSTER_W,120);
+  x.fillStyle = "#C9A96A";
+  x.font = "500 26px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText("华南师范大学 2026 年主题团日竞赛活动（秋季）", 80, 74);
+
+  /* 标题 */
+  x.fillStyle = "#C1121F"; x.fillRect(80, 196, 62, 8);
+  x.fillStyle = "#1B1613";
+  x.font = "700 106px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText("e 路长征", 74, 320);
+  x.fillStyle = "#B08A3E";
+  x.font = "500 34px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText("e 路向党 · 青春挺膺", 80, 386);
+
+  /* 姓名行 */
+  x.fillStyle = "#1B1613";
+  x.font = "700 46px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText(name, 80, 486);
+  x.fillStyle = "#6E6054";
+  x.font = "400 26px 'PingFang SC','Microsoft YaHei',sans-serif";
+  var mins = Math.max(1, Math.round((Date.now() - (S.t0||Date.now()))/60000));
+  x.fillText("点亮 7 / 7 个节点　·　答对 7 道党史题　·　用时约 " + mins + " 分钟", 80, 530);
+
+  /* 路线缩略图（等比缩放，只标首尾两端） */
+  var box = {x:90, y:590, w:900, h:400};
+  var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+  NODES.forEach(function(n){ minX=Math.min(minX,n.x); maxX=Math.max(maxX,n.x); minY=Math.min(minY,n.y); maxY=Math.max(maxY,n.y); });
+  var spanX = (maxX-minX)||1, spanY = (maxY-minY)||1;
+  var sc = Math.min((box.w-140)/spanX, (box.h-130)/spanY);
+  var ox = box.x + (box.w - spanX*sc)/2, oy = box.y + (box.h - spanY*sc)/2;
+  function px(n){ return ox + (n.x-minX)*sc; }
+  function py(n){ return oy + (n.y-minY)*sc; }
+
+  x.strokeStyle = "#E2D6C2"; x.lineWidth = 9; x.lineCap = "round"; x.lineJoin = "round";
+  x.beginPath();
+  NODES.forEach(function(n,i){ i ? x.lineTo(px(n),py(n)) : x.moveTo(px(n),py(n)); });
+  x.stroke();
+  x.strokeStyle = "#C1121F"; x.lineWidth = 5;
+  x.beginPath();
+  NODES.forEach(function(n,i){ i ? x.lineTo(px(n),py(n)) : x.moveTo(px(n),py(n)); });
+  x.stroke();
+
+  NODES.forEach(function(n,i){
+    var X = px(n), Y = py(n);
+    x.beginPath(); x.arc(X, Y, 17, 0, Math.PI*2);
+    x.fillStyle = "#B08A3E"; x.fill();
+    x.strokeStyle = "#F7F3EC"; x.lineWidth = 3.5; x.stroke();
+    x.fillStyle = "#fff"; x.font = "700 15px 'PingFang SC','Microsoft YaHei',sans-serif";
+    x.textAlign = "center"; x.fillText(n.code, X, Y+5.5);
+  });
+  x.fillStyle = "#1B1613"; x.font = "700 21px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.textAlign = "center";
+  x.fillText(NODES[0].name, px(NODES[0]), py(NODES[0]) + 52);
+  x.fillText(NODES[6].name, px(NODES[6]), py(NODES[6]) - 32);
+  x.textAlign = "center";
+  x.fillStyle = "#8A7B6B"; x.font = "400 22px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText("1934.10 瑞金出发 → 1936.10 会宁会师　·　途经 11 省　·　行程约 25,000 里", 540, box.y + box.h + 44);
+  x.textAlign = "left";
+
+  /* 金句 */
+  x.fillStyle = "#8E0D16"; x.fillRect(80, 1080, 5, 90);
+  x.fillStyle = "#1B1613";
+  x.font = "700 38px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText("一代人有一代人的长征。", 108, 1128);
+  x.fillStyle = "#6E6054"; x.font = "400 24px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText("我们的这一段，是把这条链路，一直传下去。", 108, 1172);
+
+  /* 页脚 */
+  x.fillStyle = "#DCD2C2"; x.fillRect(80, 1350, 920, 1);
+  x.fillStyle = "#6E6054"; x.font = "400 22px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText(DATA.branchFull, 80, 1410);
+  x.fillStyle = "#9A8C7C"; x.font = "400 20px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.fillText("2026 年 11 月　·　" + DATA.slogan, 80, 1450);
+
+  /* 右下角 90 */
+  x.fillStyle = "#EDE4D4"; x.font = "700 200px 'PingFang SC','Microsoft YaHei',sans-serif";
+  x.textAlign = "right"; x.fillText("90", 1004, 1290); x.textAlign = "left";
+
+  return c;
+}
+function openPoster(){
+  if(!$("pname").value) $("pname").value = S.name || "";
+  paintPoster();
+  $("posterWrap").classList.add("on");
+}
+function paintPoster(){
+  var c = drawPoster();
+  var dataUrl = c.toDataURL("image/png");
+  $("posterImg").src = dataUrl;
+  if(/[?&]raw/.test(location.search)){
+    document.body.innerHTML = "";
+    document.body.style.cssText = "margin:0;padding:0;background:#F7F3EC";
+    var im = document.createElement("img");
+    im.src = dataUrl; im.style.cssText = "width:540px;height:780px;display:block";
+    document.body.appendChild(im);
+  }
+  S.name = $("pname").value; save();
+}
+
+/* ---------------- 事件 ---------------- */
+$("btnStart").onclick = function(){
+  $("cover").classList.remove("on");
+  $("map").classList.add("on");
+  if(!S.t0) S.t0 = Date.now();
+  render();
+  /* 首次进入：自动打开第 1 关 */
+  if(!S.unlocked.length && !S.skip){
+    setTimeout(function(){ openSheet(0); }, 700);
+  }
+};
+$("ovDetail").onclick = closeSheet;
+$("btnCloseSheet").onclick = closeSheet;
+$("btnReset").onclick = function(){
+  if(!confirm("重走一次？会清空当前进度。")) return;
+  S = { unlocked:[], answered:{}, qmap:[], name:"", t0:Date.now(), skip:0 };
+  save(); render(); $("posterImg").src = ""; $("pname").value = "";
+};
+$("btnPosterTop").onclick = openPoster;
+$("btnClosePoster").onclick = function(){ $("posterWrap").classList.remove("on"); };
+$("pname").oninput = function(){ S.name = this.value; paintPoster(); };
+$("btnSave").onclick = function(){
+  var a = document.createElement("a");
+  a.download = "e路长征足迹_" + (($("pname").value||"团员")) + ".png";
+  a.href = $("posterImg").src; a.click();
+};
+document.querySelectorAll("[data-close]").forEach(function(e){
+  e.onclick = function(){ $(e.dataset.close).classList.remove("on"); };
+});
+
+/* ---------------- 启动 ---------------- */
+load();
+buildMap();
+
+/* ?skip=N 演示模式：直接点亮前 N 关（答辩彩排用） */
+(function(){
+  var m = /[?&]skip=(\d)/.exec(location.search);
+  /* ?sheet=N 打开第 N 关详情（答辩截图/演示用） */
+    var m4 = /[?&]name=([^&]*)/.exec(location.search);
+  if(m4) setTimeout(function(){ var el=$("pname"); if(el) el.value = decodeURIComponent(m4[1]); }, 80);
+var m3 = /[?&]sheet=(\d)/.exec(location.search);
+  if(m3) setTimeout(function(){ try{ openSheet(parseInt(m3[1],10)); }catch(e){} }, 120);
+
+  if(m){
+    S.skip = parseInt(m[1],10);
+    S.unlocked = [];
+    for(var i=0;i<S.skip;i++) S.unlocked.push(i);
+    S.qmap = [0,1,2,3,4,5,6];
+  }
+})();
+
+/* 首屏直接进地图（?skip 时跳过封面） */
+if(S.skip){
+  $("cover").classList.remove("on");
+  $("map").classList.add("on");
+}
+render();
+if(/[?&]poster/.test(location.search)) setTimeout(openPoster, 50);
+else if(S.unlocked.length >= 7) setTimeout(openPoster, 600);
+</script>
+
+</body>
+</html>
